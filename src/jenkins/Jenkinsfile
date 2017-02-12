@@ -1,0 +1,16 @@
+
+node('maven'){
+    stage('Checkout'){
+        git 'https://github.com/steven166/todo-app.git'
+    }
+    stage('Build') {
+        sh('./gradlew build -x test')
+    }
+    parallel 'Test': {
+        sh('./gradlew test')
+    }, 'Build JavaDocs': {
+        sh('./gradlew buildJavaDoc')
+    }, 'Build MicroDocs': {
+        sh('./gradlew microdocs')
+    }
+}
