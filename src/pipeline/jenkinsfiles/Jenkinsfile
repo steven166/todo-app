@@ -13,11 +13,11 @@ node('maven') {
         checkout scm
         stash includes: 'src/pipeline/**', name: 'pipeline'
         git GIT_URL
-        unstash name: 'pipeline'
     }
 
     stage('Prepare Build') {
         // Setup image stream
+        unstash name: 'pipeline'
         try {
             sh "oc process -f src/pipeline/templates/imagestream-app.template.yml -v NAME=${NAME} | oc replace -f -"
         } catch (Exception e) {
