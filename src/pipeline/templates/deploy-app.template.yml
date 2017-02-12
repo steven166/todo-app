@@ -51,7 +51,7 @@ objects:
           from:
             kind: ImageStreamTag
             namespace: main
-            name: '${NAME}:${TAG}'
+            name: '${IMAGE}:${TAG}'
     replicas: 1
     test: false
     selector:
@@ -111,6 +111,9 @@ objects:
 parameters:
 - description: Name
   name: NAME
+  required: true
+- description: The image name.
+  name: IMAGE
   required: true
 - description: The image tag.
   name: TAG

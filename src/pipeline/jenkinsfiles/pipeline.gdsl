@@ -1,3 +1,4 @@
+package jenkinsfiles
 
 //The global script scope
 def ctx = context(scope: scriptScope())

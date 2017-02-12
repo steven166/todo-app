@@ -1,0 +1,43 @@
+{
+	"variables": [],
+	"info": {
+		"name": "todo-app",
+		"_postman_id": "575e4e09-3309-2012-a650-cce748048c5a",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "http://api-main.10.0.75.2.xip.io/api/v1/todos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 200;"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://api-main.10.0.75.2.xip.io/api/v1/todos",
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "Jenkinsfile",
+							"type": "file",
+							"enabled": true,
+							"src": "Jenkinsfile"
+						}
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}

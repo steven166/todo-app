@@ -22,9 +22,10 @@ objects:
     strategy:
       type: Docker
       dockerStrategy:
-        dockerfilePath: src/pipeline/Dockerfile
-
-
+        dockerfilePath: src/pipeline/dockerfiles/Dockerfile
+        env:
+          - name: JAR
+            value: build/libs/${NAME}.jar
 
 parameters:
 - description: Name
