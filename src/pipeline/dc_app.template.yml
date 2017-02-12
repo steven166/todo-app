@@ -1,0 +1,43 @@
+# Build config template for building a Docker image
+
+apiVersion: v1
+kind: Template
+metadata:
+  name: dc_app
+objects:
+- kind: "DeploymentConfig"
+  apiVersion: "v1"
+  metadata:
+    name: ${NAME}
+  spec:
+    template:
+      metadata:
+        labels:
+          name: ${NAME}
+      spec:
+        containers:
+          - name: ${NAME}
+            image: ${PROJECT}/${NAME}:${TAG}
+            ports:
+              - containerPort: 8080
+                protocol: "TCP"
+    replicas: 2
+    triggers:
+      - type: "ConfigChange"
+    strategy:
+      type: "Rolling"
+    paused: false
+    revisionHistoryLimit: 2
+    minReadySeconds: 0
+
+parameters:
+- description: Name
+  name: NAME
+  required: true
+- description: Project
+  name: PROJECT
+  required: true
+- description: The image tag.
+  name: TAG
+  required: true
+  value: dev

@@ -1,0 +1,54 @@
+def NAME = 'todo-app'
+def PROJECT = 'main'
+def GIT_URL = 'https://github.com/steven166/todo-app.git'
+
+node('maven') {
+    stage('Checkout') {
+        git GIT_URL
+    }
+    stage('Build') {
+        sh 'chmod 777 ./gradlew'
+        sh './gradlew build -x test'
+    }
+    stage('Build parallel') {
+        parallel 'Build Docker Image': {
+//            echo 'Update Docker build-config'
+//            try {
+//                // Delete old Build Config
+//                sh "oc delete bc/${NAME}-snapshot"
+//            } catch (Exception e) {
+//            }
+            sh "oc process -f src/jenkins/bc_docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc replace -f -"
+            echo 'Build Docker Image'
+            sh "oc start-build ${NAME}-snapshot --from-dir=. -F -w"
+        }, 'Test': {
+            sh './gradlew test'
+        }, 'Build JavaDocs': {
+            sh './gradlew buildJavaDoc'
+            stash includes: 'build/reports/javadoc/**', name: 'javadoc'
+        }, 'Build MicroDocs': {
+            sh './gradlew microdocs'
+            stash includes: 'build/reports/microdocs.json', name: 'microdocs'
+        }
+    }
+    stage('Publish develop') {
+        parallel 'Promote Image': {
+            sh "oc tag ${PROJECT}/${NAME}:snapshot ${PROJECT}/${NAME}:dev"
+        }, 'Prepair Deployment': {
+            sh "oc process -f src/jenkins/dc_app.template.yml -v NAME=${NAME} -v PROJECT=${PROJECT} -v TAG=dev | oc replace -f -"
+        }, 'Publish reports': {
+            // Publish JUnit reports
+            junit allowEmptyResults: true, testResults: 'build/test-results/*.xml'
+            // Publish JavaDoc
+            unstash 'javadoc'
+            sh 'cd build/reports && tar -cjf javadoc.tar.bz2 javadoc'
+            archive 'javadoc.tar.bz2'
+        }, 'Publish Microdocs': {
+            unstash 'microdocs'
+            // mdocs publish -d build/reports/microdocs.json
+        }
+    }
+    stage('Deploy develop'){
+
+    }
+}
