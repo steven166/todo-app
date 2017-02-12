@@ -1,4 +1,3 @@
-package jenkinsfiles
 
 def NAME = 'openshift-example'
 def GIT_URL = 'https://github.com/steven166/openshift-example.git'
@@ -11,11 +10,11 @@ node('maven') {
         checkout scm
         stash includes: 'src/pipeline/**', name: 'pipeline'
         git GIT_URL
-        unstash name: 'pipeline'
     }
 
     stage('Prepare Build') {
         // Setup image stream
+        unstash name: 'pipeline'
         try {
             sh "oc process -f src/pipeline/templates/imagestream-app.template.yml -v NAME=${NAME} | oc replace -f -"
         } catch (Exception e) {
@@ -37,6 +36,7 @@ node('maven') {
     stage('Build Docker Image') {
 
         parallel 'Build Docker Image': {
+            unstash name: 'pipeline'
             sh "oc start-build ${NAME} --from-dir=. -F -w"
 
         }, 'Test and Report': {
@@ -61,6 +61,7 @@ node('maven') {
     }
 
     stage('Prepare Deployment') {
+        unstash name: 'pipeline'
         try {
             sh "oc process -f src/pipeline/templates/dc_app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
         } catch (Exception e) {
@@ -74,6 +75,7 @@ node('maven') {
     }
 
     stage('Expose routes') {
+        unstash name: 'pipeline'
         def routes = ROUTES.split(',');
         for (int index = 0; index < routes.length; index++) {
             def route = routes[index];
@@ -88,6 +90,7 @@ node('maven') {
 
     if(fileExists(POSTMAN_COLLECTION)) {
         stage('Prepare Api Test') {
+            unstash name: 'pipeline'
             try {
                 sh "oc process -f src/pipeline/templates/dc_app.template.yml -v NAME=${NAME}-test -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
             } catch (Exception e) {
