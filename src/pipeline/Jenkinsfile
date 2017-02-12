@@ -49,8 +49,7 @@ node('maven') {
             junit allowEmptyResults: true, testResults: 'build/test-results/*.xml'
             // Publish JavaDoc
             unstash 'javadoc'
-            sh 'cd build/reports && ls -R && tar -cjf javadoc.tar.bz2 javadoc'
-            archive 'javadoc.tar.bz2'
+            archive 'build/reports/**'
         }, 'Publish Microdocs': {
             unstash 'microdocs'
             // mdocs publish -d build/reports/microdocs.json
