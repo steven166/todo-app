@@ -1,28 +1,40 @@
+def NAME = 'todo-app'
+def PROJECT = 'main'
+def GIT_URL = 'https://github.com/steven166/todo-app.git'
 
-node('maven'){
-    stage('Checkout'){
-        git 'https://github.com/steven166/todo-app.git'
+node('maven') {
+    stage('Checkout') {
+        git GIT_URL
     }
     stage('Build') {
         sh 'chmod 777 ./gradlew'
         sh './gradlew build -x test'
     }
-    parallel 'Build Docker Image': {
-        stage('Prepare Build'){
-            try{
+    stage('Build parallel') {
+        parallel 'Build Docker Image': {
+            try {
                 // Delete old Build Config
-                sh 'oc delete bc/todo-app-snapshot'
-            }catch(Exception e){}
-            sh 'oc process -f src/jenkins/bc_docker.yml -v NAME=todo-app -v TAG=snapshot | oc create -f -'
+                sh "oc delete bc/${NAME}-snapshot"
+            } catch (Exception e) {
+            }
+            sh "oc process -f src/jenkins/bc_docker.yml -v NAME=${NAME} -v TAG=snapshot | oc create -f -"
+            sh "oc start-build ${NAME}-snapshot --from-dir=. -F -w"
+        }, 'Test': {
+            sh './gradlew test'
+        }, 'Build JavaDocs': {
+            sh './gradlew buildJavaDoc'
+        }, 'Build MicroDocs': {
+            sh './gradlew microdocs'
         }
-        stage('Build Docker'){
-            openshiftBuild apiURL: '', authToken: '', bldCfg: 'todo-app-snapshot', buildName: '', checkForTriggeredDeployments: 'true', commitID: '', namespace: '', showBuildLogs: 'true', verbose: 'false', waitTime: '', waitUnit: 'sec'
+    }
+    stage('Publish and Deploy') {
+        parallel 'Deploy Develop': {
+            sh "oc tag ${PROJECT}/${NAME}:snapshot ${PROJECT}/${NAME}:dev"
+        }, 'Publish reports': {
+            sh 'cd build && tar -cjf reports.tar.bz2 reports'
+            archive 'build/*.tar.bz2'
+        }, 'Publish Test reports': {
+            junit allowEmptyResults: true, testResults: 'build/test-results/*.xml'
         }
-    }, 'Test': {
-        sh './gradlew test'
-    }, 'Build JavaDocs': {
-        sh './gradlew buildJavaDoc'
-    }, 'Build MicroDocs': {
-        sh './gradlew microdocs'
     }
 }
