@@ -20,7 +20,7 @@ parameters:
   displayName: Git Repository URL
   name: GIT_URL
   required: true
-  value: https://github.com/steven166/spring-boot-demo
+  value: https://github.com/steven166/todo-app.git
 
 objects:
 - apiVersion: v1
