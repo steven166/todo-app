@@ -7,7 +7,18 @@ node('maven'){
         sh 'chmod 777 ./gradlew'
         sh './gradlew build -x test'
     }
-    parallel 'Test': {
+    parallel 'Build Docker Image': {
+        stage('Prepare Build'){
+            try{
+                // Delete old Build Config
+                sh 'oc delete bc/todo-app-snapshot'
+            }catch(Exception e){}
+            sh 'oc process -f src/jenkins/bc_docker.yml -v NAME=todo-app -v TAG=snapshot | oc create -f -'
+        }
+        stage('Build Docker'){
+            openshiftBuild apiURL: '', authToken: '', bldCfg: 'todo-app-snapshot', buildName: '', checkForTriggeredDeployments: 'true', commitID: '', namespace: '', showBuildLogs: 'true', verbose: 'false', waitTime: '', waitUnit: 'sec'
+        }
+    }, 'Test': {
         sh './gradlew test'
     }, 'Build JavaDocs': {
         sh './gradlew buildJavaDoc'

@@ -1,0 +1,36 @@
+# Build config template for building a Docker image
+
+apiVersion: v1
+kind: Template
+metadata:
+  name: bc_docker
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: ${NAME}
+    name: ${NAME}-${TAG}
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${NAME}:${TAG}
+    runPolicy: Serial
+    source:
+      type: Binary
+    strategy:
+      type: Docker
+      dockerStrategy:
+        dockerfilePath: src/jenkins/Dockerfile
+
+
+
+parameters:
+- description: Name
+  name: NAME
+  required: true
+- description: The image tag.
+  name: TAG
+  required: true
+  value: dev
