@@ -34,7 +34,7 @@ node('maven') {
     stage('Build Docker Image') {
 
         parallel 'Build Docker Image': {
-            sh "oc start-build ${NAME}-snapshot --from-dir=. -F -w"
+            sh "oc start-build ${NAME} --from-dir=. -F -w"
 
         }, 'Test and Report': {
             sh './gradlew test buildJavaDoc microdocs'
