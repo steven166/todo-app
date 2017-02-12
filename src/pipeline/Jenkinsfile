@@ -18,7 +18,11 @@ node('maven') {
 //                sh "oc delete bc/${NAME}-snapshot"
 //            } catch (Exception e) {
 //            }
-            sh "oc process -f src/pipeline/bc_docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc replace -f -"
+            try {
+                sh "oc process -f src/pipeline/bc_docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc replace -f -"
+            }catch(Exception e){
+                sh "oc process -f src/pipeline/bc_docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc replace --force -f -"
+            }
             echo 'Build Docker Image'
             sh "oc start-build ${NAME}-snapshot --from-dir=. -F -w"
         }, 'Test': {
@@ -35,13 +39,17 @@ node('maven') {
         parallel 'Promote Image': {
             sh "oc tag ${PROJECT}/${NAME}:snapshot ${PROJECT}/${NAME}:dev"
         }, 'Prepair Deployment': {
-            sh "oc process -f src/pipeline/dc_app.template.yml -v NAME=${NAME} -v PROJECT=${PROJECT} -v TAG=dev | oc replace -f -"
+            try {
+                sh "oc process -f src/pipeline/dc_app.template.yml -v NAME=${NAME} -v PROJECT=${PROJECT} -v TAG=dev | oc replace -f -"
+            }catch(Exception e){
+                sh "oc process -f src/pipeline/dc_app.template.yml -v NAME=${NAME} -v PROJECT=${PROJECT} -v TAG=dev | oc replace --force -f -"\
+            }
         }, 'Publish reports': {
             // Publish JUnit reports
             junit allowEmptyResults: true, testResults: 'build/test-results/*.xml'
             // Publish JavaDoc
             unstash 'javadoc'
-            sh 'cd build/reports && tar -cjf javadoc.tar.bz2 javadoc'
+            sh 'cd build/reports && ls -R && tar -cjf javadoc.tar.bz2 javadoc'
             archive 'javadoc.tar.bz2'
         }, 'Publish Microdocs': {
             unstash 'microdocs'
