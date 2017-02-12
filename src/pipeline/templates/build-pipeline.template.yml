@@ -32,7 +32,7 @@ objects:
   spec:
     strategy:
       jenkinsPipelineStrategy:
-        jenkinsfilePath: Jenkinsfile
+        jenkinsfilePath: src/pipeline/jenkinsfiles/Jenkinsfile-${NAME}
       type: JenkinsPipeline
     source:
       type: "Git"
