@@ -22,7 +22,7 @@ objects:
     strategy:
       type: Docker
       dockerStrategy:
-        dockerfilePath: src/jenkins/Dockerfile
+        dockerfilePath: src/pipeline/Dockerfile
 
 
 
