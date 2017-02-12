@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Template
+labels:
+  template: build-pipeline
+message: Template for adding a pipeline
+metadata:
+  annotations:
+    description: Template for adding a pipeline
+    iconClass: icon-jenkins
+    tags: instant-app,jenkins
+  name: build-pipeline
+
+parameters:
+- description: The name of the service
+  displayName: Name
+  name: NAME
+  required: true
+  value: todo-service
+- description: The URL of the repository with the Pipeline code
+  displayName: Git Repository URL
+  name: GIT_URL
+  required: true
+  value: https://github.com/steven166/spring-boot-demo
+
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      name: ${NAME}-pipeline
+    name: ${NAME}-pipeline
+  spec:
+    strategy:
+      jenkinsPipelineStrategy:
+        jenkinsfilePath: Jenkinsfile
+      type: JenkinsPipeline
+    source:
+      type: "Git"
+      git:
+        uri: ${GIT_URL}
+
