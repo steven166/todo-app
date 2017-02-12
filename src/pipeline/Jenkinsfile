@@ -26,27 +26,20 @@ node('maven') {
             }
             echo 'Build Docker Image'
             sh "oc start-build ${NAME}-snapshot --from-dir=. -F -w"
-        }, 'Test': {
-            sh './gradlew test'
-        }, 'Build JavaDocs': {
-            sh './gradlew buildJavaDoc'
-            stash includes: 'build/reports/javadoc/**', name: 'javadoc'
-        }, 'Build MicroDocs': {
-            sh './gradlew microdocs'
-            stash includes: 'build/reports/microdocs.json', name: 'microdocs'
+        }, 'Test and Report': {
+            sh './gradlew test buildJavaDoc microdocs'
+            stash includes: 'build/reports/**', name: 'reports'
         }
     }
     stage('Publish develop') {
         parallel 'Promote Image': {
             sh "oc tag ${PROJECT}/${NAME}:snapshot ${PROJECT}/${NAME}:dev"
         }, 'Publish reports': {
+            unstash 'reports'
             // Publish JUnit reports
             junit allowEmptyResults: true, testResults: 'build/test-results/*.xml'
             // Publish JavaDoc
-            unstash 'javadoc'
             archive 'build/reports/**'
-        }, 'Publish Microdocs': {
-            unstash 'microdocs'
             // mdocs publish -d build/reports/microdocs.json
         }
     }
