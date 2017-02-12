@@ -55,11 +55,13 @@ node('maven') {
         sh "oc rollout latest dc/${NAME}"
     }
     stage('Expose routes') {
-        for(def route : ROUTES){
+        for(int index = 0; index < ROUTES.size(); i++)
+            def route = ROUTES.get(index);
+            def routeName = NAME + '_' + index;
             try {
-                sh "oc process -f src/pipeline/dc_route.template.yml -v NAME=${NAME} -v PATH=${route} | oc replace -f -"
+                sh "oc process -f src/pipeline/dc_route.template.yml -v NAME=${routeName} -v SERVICE=${NAME} -v PATH=${route} | oc replace -f -"
             } catch (Exception e) {
-                sh "oc process -f src/pipeline/dc_route.template.yml -v NAME=${NAME}  -v PATH=${route} | oc replace --force -f -"
+                sh "oc process -f src/pipeline/dc_route.template.yml -v NAME=${routeName} -v SERVICE=${NAME} -v PATH=${route} | oc replace --force -f -"
             }
         }
     }

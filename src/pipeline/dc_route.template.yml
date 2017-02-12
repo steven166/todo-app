@@ -8,17 +8,20 @@ objects:
 - apiVersion: v1
   kind: Route
   metadata:
-    name: route-unsecured
+    name: ${NAME}
   spec:
     host: ${HOST}
     path: ${PATH}
     to:
       kind: Service
-      name: ${NAME}
+      name: ${SERVICE}
 
 parameters:
 - description: Name
   name: NAME
+  required: true
+- description: Service
+  name: SERVICE
   required: true
 - description: Path
   name: PATH
