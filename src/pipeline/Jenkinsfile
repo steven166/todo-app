@@ -55,7 +55,7 @@ node('maven') {
         sh "oc rollout latest dc/${NAME}"
     }
     stage('Expose routes') {
-        for(int index = 0; index < ROUTES.size(); i++)
+        for(int index = 0; index < ROUTES.size(); index++){
             def route = ROUTES.get(index);
             def routeName = NAME + '_' + index;
             try {
