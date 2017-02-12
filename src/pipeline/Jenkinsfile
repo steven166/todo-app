@@ -59,7 +59,7 @@ node('maven') {
         }
     }
     stage('Deploy develop') {
-        sh "oc deploy ${NAME} --latest"
+        sh "oc rollout latest dc/${NAME}"
     }
     stage('Expose routes') {
         for(def route : ROUTES){
