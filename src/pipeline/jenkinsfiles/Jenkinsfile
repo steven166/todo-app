@@ -5,10 +5,13 @@ def GIT_URL = 'https://github.com/steven166/todo-app.git'
 def ROUTES = "/api/v1/todos";
 def POSTMAN_COLLECTION = "/build/reports/collection.json";
 
+stash includes: 'src/pipeline/**', name: 'pipeline'
+
 node('maven') {
 
     stage('Checkout') {
         git GIT_URL
+        unstash name: 'pipeline'
     }
 
     stage('Prepare Build') {
