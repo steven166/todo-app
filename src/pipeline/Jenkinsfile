@@ -57,7 +57,7 @@ node('maven') {
     stage('Expose routes') {
         for(int index = 0; index < ROUTES.size(); index++){
             def route = ROUTES.get(index);
-            def routeName = NAME + '_' + index;
+            def routeName = NAME + '-' + index;
             try {
                 sh "oc process -f src/pipeline/dc_route.template.yml -v NAME=${routeName} -v SERVICE=${NAME} -v PATH=${route} | oc replace -f -"
             } catch (Exception e) {
