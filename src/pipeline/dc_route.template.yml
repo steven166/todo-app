@@ -1,0 +1,33 @@
+# Template for generating route
+
+apiVersion: v1
+kind: Template
+metadata:
+  name: dc_route
+objects:
+- apiVersion: v1
+  kind: Route
+  metadata:
+    name: route-unsecured
+  spec:
+    host: ${HOST}
+    path: ${PATH}
+    to:
+      kind: Service
+      name: ${NAME}
+
+parameters:
+- description: Name
+  name: NAME
+  required: true
+- description: Path
+  name: PATH
+  required: true
+  value: /
+- description: Host
+  name: HOST
+  required: true
+  value: api-main.10.0.75.2.xip.io
+
+
+

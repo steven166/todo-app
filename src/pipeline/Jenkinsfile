@@ -1,6 +1,7 @@
 def NAME = 'todo-app'
 def PROJECT = 'main'
 def GIT_URL = 'https://github.com/steven166/todo-app.git'
+def ROUTES = ["/api/v1"];
 
 node('maven') {
     stage('Checkout') {
@@ -20,7 +21,7 @@ node('maven') {
 //            }
             try {
                 sh "oc process -f src/pipeline/bc_docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc replace -f -"
-            }catch(Exception e){
+            } catch (Exception e) {
                 sh "oc process -f src/pipeline/bc_docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc replace --force -f -"
             }
             echo 'Build Docker Image'
@@ -38,12 +39,6 @@ node('maven') {
     stage('Publish develop') {
         parallel 'Promote Image': {
             sh "oc tag ${PROJECT}/${NAME}:snapshot ${PROJECT}/${NAME}:dev"
-        }, 'Prepair Deployment': {
-            try {
-                sh "oc process -f src/pipeline/dc_app.template.yml -v NAME=${NAME} -v PROJECT=${PROJECT} -v TAG=dev | oc replace -f -"
-            }catch(Exception e){
-                sh "oc process -f src/pipeline/dc_app.template.yml -v NAME=${NAME} -v PROJECT=${PROJECT} -v TAG=dev | oc replace --force -f -"\
-            }
         }, 'Publish reports': {
             // Publish JUnit reports
             junit allowEmptyResults: true, testResults: 'build/test-results/*.xml'
@@ -55,7 +50,24 @@ node('maven') {
             // mdocs publish -d build/reports/microdocs.json
         }
     }
-    stage('Deploy develop'){
-
+    stage('Prepair Deployment') {
+        try {
+            sh "oc process -f src/pipeline/dc_app.template.yml -v NAME=${NAME} -v TAG=dev | oc replace -f -"
+        } catch (Exception e) {
+            sh "oc new-app ${NAME}"
+            sh "oc process -f src/pipeline/dc_app.template.yml -v NAME=${NAME} -v TAG=dev | oc replace -f -"
+        }
+    }
+    stage('Deploy develop') {
+        sh "oc deploy ${NAME} --latest"
+    }
+    stage('Expose routes') {
+        for(def route : ROUTES){
+            try {
+                sh "oc process -f src/pipeline/dc_route.template.yml -v NAME=${NAME} -v PATH=${route} | oc replace -f -"
+            } catch (Exception e) {
+                sh "oc process -f src/pipeline/dc_route.template.yml -v NAME=${NAME}  -v PATH=${route} | oc replace --force -f -"
+            }
+        }
     }
 }
