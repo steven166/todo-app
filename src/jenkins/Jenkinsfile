@@ -4,13 +4,14 @@ node('maven'){
         git 'https://github.com/steven166/todo-app.git'
     }
     stage('Build') {
-        sh('./gradlew build -x test')
+        sh 'chmod 777 ./gradlew'
+        sh './gradlew build -x test'
     }
     parallel 'Test': {
-        sh('./gradlew test')
+        sh './gradlew test'
     }, 'Build JavaDocs': {
-        sh('./gradlew buildJavaDoc')
+        sh './gradlew buildJavaDoc'
     }, 'Build MicroDocs': {
-        sh('./gradlew microdocs')
+        sh './gradlew microdocs'
     }
 }
