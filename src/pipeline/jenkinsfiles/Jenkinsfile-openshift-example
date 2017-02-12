@@ -5,13 +5,11 @@ def GIT_URL = 'https://github.com/steven166/openshift-example.git'
 def ROUTES = "/demo";
 def POSTMAN_COLLECTION = "/build/reports/collection.json";
 
-node('master'){
-    stash includes: 'src/pipeline/**', name: 'pipeline'
-}
-
 node('maven') {
 
     stage('Checkout') {
+        checkout scm
+        stash includes: 'src/pipeline/**', name: 'pipeline'
         git GIT_URL
         unstash name: 'pipeline'
     }

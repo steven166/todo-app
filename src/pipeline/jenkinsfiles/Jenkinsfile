@@ -10,6 +10,8 @@ stash includes: 'src/pipeline/**', name: 'pipeline'
 node('maven') {
 
     stage('Checkout') {
+        checkout scm
+        stash includes: 'src/pipeline/**', name: 'pipeline'
         git GIT_URL
         unstash name: 'pipeline'
     }
