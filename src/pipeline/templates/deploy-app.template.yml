@@ -6,15 +6,6 @@ metadata:
   name: dc_app
 objects:
 - apiVersion: v1
-  kind: Service
-  metadata:
-    name: ${NAME}
-    labels:
-      app: ${NAME}
-  status:
-    loadBalancer: {}
-
-- apiVersion: v1
   kind: DeploymentConfig
   metadata:
     name: ${NAME}
