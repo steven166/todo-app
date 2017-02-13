@@ -11,17 +11,6 @@ objects:
     name: ${NAME}
     labels:
       app: ${NAME}
-  spec:
-    ports:
-      - name: 8080-tcp
-        protocol: TCP
-        port: 8080
-        targetPort: 8080
-    selector:
-      app: todo-app
-      deploymentconfig: todo-app
-    type: ClusterIP
-    sessionAffinity: None
   status:
     loadBalancer: {}
 
