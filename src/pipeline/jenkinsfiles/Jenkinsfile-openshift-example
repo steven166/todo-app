@@ -68,7 +68,7 @@ node('maven') {
     }
 
     stage('Deploy develop') {
-        sh "oc rollout latest dc/${NAME}"
+        sh "oc rollout status dc/${NAME}"
     }
 
     stage('Expose routes') {
