@@ -2,7 +2,7 @@ package jenkinsfiles
 
 
 node('maven') {
-
+    groovy.lang.Binding.
     checkout scm
     jenkinsfiles.JenkinsfileBase.run();
 }
