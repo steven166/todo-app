@@ -66,6 +66,7 @@ objects:
       spec:
         containers:
           - name: ${NAME}
+            image: '${DOCKER_REGISTRY}/${IMAGE}:${TAG}'
             ports:
               - containerPort: 8080
                 protocol: TCP
@@ -114,6 +115,9 @@ parameters:
   required: true
 - description: The image name.
   name: IMAGE
+  required: true
+- description: The docker registry
+  name: DOCKER_REGISTRY
   required: true
 - description: The image tag.
   name: TAG

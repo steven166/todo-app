@@ -1,6 +1,7 @@
 
 def NAME = 'todo-app'
 def GIT_URL = 'https://github.com/steven166/todo-app.git'
+def DOCKER_REGISTRY = '172.30.208.12:5000/maxxton'
 def ROUTES = "/api/v1/todos";
 def POSTMAN_COLLECTION = "/build/reports/collection.json";
 
@@ -63,10 +64,10 @@ node('maven') {
     stage('Prepare Deployment') {
         unstash name: 'pipeline'
         try {
-            sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
+            sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev -v DOCKER_REGISTRY=${DOCKER_REGISTRY} | oc replace -f -"
         } catch (Exception e) {
             sh "oc new-app --image-stream=${NAME}:dev"
-            sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev | oc replace --force -f -"
+            sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev -v DOCKER_REGISTRY=${DOCKER_REGISTRY} | oc replace -f -"
         }
     }
 
