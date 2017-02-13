@@ -1,7 +1,8 @@
 package jenkinsfiles
 
-import jenkinsfiles.JenkinsfileBase;
 
 node('maven') {
-    JenkinsfileBase.run();
+
+    checkout scm
+    jenkinsfiles.JenkinsfileBase.run();
 }
