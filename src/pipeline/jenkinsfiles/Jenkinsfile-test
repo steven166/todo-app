@@ -1,8 +1,16 @@
 package jenkinsfiles
 
 
+public class JenkinsfileBase {
+
+    public static void run(){
+        stage('test'){
+            echo 'hello'
+        }
+    }
+
+}
+
 node('maven') {
-    groovy.lang.Binding.
-    checkout scm
-    jenkinsfiles.JenkinsfileBase.run();
+    JenkinsfileBase.run();
 }
