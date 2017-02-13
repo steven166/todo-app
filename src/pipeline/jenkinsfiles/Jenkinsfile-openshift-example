@@ -63,10 +63,10 @@ node('maven') {
     stage('Prepare Deployment') {
         unstash name: 'pipeline'
         try {
-            sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
+            sh "oc process -f src/pipeline/templates/dc_app.template.yml -v NAME=${NAME}-test -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
         } catch (Exception e) {
             sh "oc new-app ${NAME}"
-            sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
+            sh "oc process -f src/pipeline/templates/dc_app.template.yml -v NAME=${NAME}-test -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
         }
     }
 
