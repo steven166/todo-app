@@ -3,6 +3,7 @@ def NAME = 'openshift-example'
 def GIT_URL = 'https://github.com/steven166/openshift-example.git'
 def DOCKER_REGISTRY = '172.30.208.12:5000/maxxton'
 def ROUTES = "/demo";
+def HOSTNAME = "api-main.10.0.75.2.xip.io"
 def POSTMAN_COLLECTION = "/build/reports/collection.json";
 
 node('maven') {
@@ -14,18 +15,12 @@ node('maven') {
     }
 
     stage('Prepare Build') {
-        // Setup image stream
-        unstash name: 'pipeline'
-        try {
-            sh "oc process -f src/pipeline/templates/imagestream-app.template.yml -v NAME=${NAME} | oc replace -f -"
-        } catch (Exception e) {
-            sh "oc process -f src/pipeline/templates/imagestream-app.template.yml -v NAME=${NAME} | oc replace --force -f -"
-        }
         // Setup docker build config
         try {
+            echo "Create BuildConfig Docker"
             sh "oc process -f src/pipeline/templates/build-docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc replace -f -"
         } catch (Exception e) {
-            sh "oc process -f src/pipeline/templates/build-docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc replace --force -f -"
+            echo "BuildConfig Docker already exists"
         }
     }
 
@@ -64,11 +59,12 @@ node('maven') {
     stage('Prepare Deployment') {
         unstash name: 'pipeline'
         try {
-            sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev -v DOCKER_REGISTRY=${DOCKER_REGISTRY} | oc replace -f -"
-        } catch (Exception e) {
+            echo "Create App"
             sh "oc new-app --image-stream=${NAME}:dev"
-            sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev -v DOCKER_REGISTRY=${DOCKER_REGISTRY} | oc replace -f -"
+        } catch (Exception e) {
+            echo "App already exists"
         }
+
     }
 
     stage('Deploy develop') {
@@ -80,11 +76,11 @@ node('maven') {
         def routes = ROUTES.split(',');
         for (int index = 0; index < routes.length; index++) {
             def route = routes[index];
-            def routeName = NAME + '-' + index;
             try {
-                sh "oc process -f src/pipeline/templates/deploy-route.template.yml -v NAME=${routeName} -v SERVICE=${NAME} -v PATH=${route} | oc replace -f -"
+                echo "Create Route ${name}-${inde} for ${path}"
+                sh "oc expose service ${name} --name=${name}-${index} --hostname=${HOSTNAME} --path=${route}"
             } catch (Exception e) {
-                sh "oc process -f src/pipeline/templates/deploy-route.template.yml -v NAME=${routeName} -v SERVICE=${NAME} -v PATH=${route} | oc replace --force -f -"
+                echo "Route for ${path} already exists"
             }
         }
     }

@@ -3,13 +3,11 @@
 apiVersion: v1
 kind: Template
 metadata:
-  name: bc_docker
+  name: build-docker
 objects:
 - apiVersion: v1
   kind: BuildConfig
   metadata:
-    labels:
-      app: ${NAME}
     name: ${NAME}-${TAG}
   spec:
     output:

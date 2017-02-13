@@ -24,10 +24,12 @@ parameters:
 
 objects:
 - apiVersion: v1
+  kind: ImageStream
+  metadata:
+    name: ${NAME}
+- apiVersion: v1
   kind: BuildConfig
   metadata:
-    labels:
-      name: ${NAME}-pipeline
     name: ${NAME}-pipeline
   spec:
     strategy:
