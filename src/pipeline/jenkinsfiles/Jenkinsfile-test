@@ -1,0 +1,7 @@
+package jenkinsfiles
+
+import jenkinsfiles.JenkinsfileBase;
+
+node('maven') {
+    JenkinsfileBase.run();
+}
