@@ -1,6 +1,7 @@
 
 def NAME = 'todo-app'
 def GIT_URL = 'https://github.com/steven166/todo-app.git'
+def DOCKER_REGISTRY = '172.30.208.12:5000/maxxton'
 def ROUTES = "/api/v1/todos";
 def POSTMAN_COLLECTION = "/build/reports/collection.json";
 
@@ -63,10 +64,10 @@ node('maven') {
     stage('Prepare Deployment') {
         unstash name: 'pipeline'
         try {
-            sh "oc process -f src/pipeline/templates/dc_app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
+            sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev -v DOCKER_REGISTRY=${DOCKER_REGISTRY} | oc replace -f -"
         } catch (Exception e) {
-            sh "oc new-app ${NAME}"
-            sh "oc process -f src/pipeline/templates/dc_app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
+            sh "oc new-app --image-stream=${NAME}:dev"
+            sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev -v DOCKER_REGISTRY=${DOCKER_REGISTRY} | oc replace -f -"
         }
     }
 
@@ -81,9 +82,9 @@ node('maven') {
             def route = routes[index];
             def routeName = NAME + '-' + index;
             try {
-                sh "oc process -f src/pipeline/templates/dc_route.template.yml -v NAME=${routeName} -v SERVICE=${NAME} -v PATH=${route} | oc replace -f -"
+                sh "oc process -f src/pipeline/templates/deploy-route.template.yml -v NAME=${routeName} -v SERVICE=${NAME} -v PATH=${route} | oc replace -f -"
             } catch (Exception e) {
-                sh "oc process -f src/pipeline/templates/dc_route.template.yml -v NAME=${routeName} -v SERVICE=${NAME} -v PATH=${route} | oc replace --force -f -"
+                sh "oc process -f src/pipeline/templates/deploy-route.template.yml -v NAME=${routeName} -v SERVICE=${NAME} -v PATH=${route} | oc replace --force -f -"
             }
         }
     }
@@ -92,10 +93,10 @@ node('maven') {
         stage('Prepare Api Test') {
             unstash name: 'pipeline'
             try {
-                sh "oc process -f src/pipeline/templates/dc_app.template.yml -v NAME=${NAME}-test -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
+                sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME}-test -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
             } catch (Exception e) {
                 sh "oc new-app ${NAME}"
-                sh "oc process -f src/pipeline/templates/dc_app.template.yml -v NAME=${NAME}-test -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
+                sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME}-test -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
             }
 
             stash includes: POSTMAN_COLLECTION, name: 'api-test'
