@@ -20,7 +20,6 @@ objects:
     selector:
       app: todo-app
       deploymentconfig: todo-app
-    clusterIP: 172.30.232.71
     type: ClusterIP
     sessionAffinity: None
   status:

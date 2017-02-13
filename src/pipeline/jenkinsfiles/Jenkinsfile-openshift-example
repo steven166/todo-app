@@ -38,6 +38,7 @@ node('maven') {
 
         parallel 'Build Docker Image': {
             unstash name: 'pipeline'
+            kubernetes.image().withName(NAME).build().fromPath('.')
             sh "oc start-build ${NAME}-snapshot --from-dir=. -F -w"
 
         }, 'Test and Report': {
