@@ -65,7 +65,7 @@ node('maven') {
         try {
             sh "oc process -f src/pipeline/templates/dc_app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
         } catch (Exception e) {
-            sh "oc new-app ${NAME}"
+            sh "oc new-app --image-stream=${NAME}:dev"
             sh "oc process -f src/pipeline/templates/dc_app.template.yml -v NAME=${NAME} -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
         }
     }
