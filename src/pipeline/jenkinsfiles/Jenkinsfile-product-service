@@ -16,6 +16,7 @@ node('maven') {
 
     stage('Prepare Build') {
         // Setup docker build config
+        unstash name: 'pipeline'
         try {
             echo "Create BuildConfig Docker"
             sh "oc process -f src/pipeline/templates/build-docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc create -f -"
