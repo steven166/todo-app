@@ -100,14 +100,14 @@ node('maven') {
     }
 }
 
-if(fileExists(POSTMAN_COLLECTION)) {
-    node('nodejs') {
-        stage('Install newman') {
-            sh 'npm install -g newman'
-        }
-        stage('Run Api Test') {
-            unstash name: 'api-test'
-            sh "newman -c ${POSTMAN_COLLECTION} --exitCode 1"
-        }
-    }
-}
+//if(fileExists(POSTMAN_COLLECTION)) {
+//    node('nodejs') {
+//        stage('Install newman') {
+//            sh 'npm install -g newman'
+//        }
+//        stage('Run Api Test') {
+//            unstash name: 'api-test'
+//            sh "newman -c ${POSTMAN_COLLECTION} --exitCode 1"
+//        }
+//    }
+//}
