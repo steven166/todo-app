@@ -18,7 +18,7 @@ node('maven') {
         // Setup docker build config
         try {
             echo "Create BuildConfig Docker"
-            sh "oc process -f src/pipeline/templates/build-docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc replace -f -"
+            sh "oc process -f src/pipeline/templates/build-docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc create -f -"
         } catch (Exception e) {
             echo "BuildConfig Docker already exists"
         }
