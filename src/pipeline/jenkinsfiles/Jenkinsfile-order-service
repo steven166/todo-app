@@ -78,10 +78,10 @@ node('maven') {
         for (int index = 0; index < routes.length; index++) {
             def route = routes[index];
             try {
-                echo "Create Route ${name}-${inde} for ${path}"
-                sh "oc expose service ${name} --name=${name}-${index} --hostname=${HOSTNAME} --path=${route}"
+                echo "Create Route ${NAME}-${index} for ${route}"
+                sh "oc expose service ${NAME} --name=${NAME}-${index} --hostname=${HOSTNAME} --path=${route}"
             } catch (Exception e) {
-                echo "Route for ${path} already exists"
+                echo "Route for ${route} already exists"
             }
         }
     }
