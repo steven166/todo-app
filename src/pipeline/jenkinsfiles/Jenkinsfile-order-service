@@ -1,0 +1,113 @@
+
+def NAME = 'order-service'
+def GIT_URL = 'https://github.com/steven166/order-service.git'
+def DOCKER_REGISTRY = '172.30.208.12:5000/maxxton'
+def ROUTES = "/api/v1/orders";
+def HOSTNAME = "api-main.10.0.75.2.xip.io"
+def POSTMAN_COLLECTION = "/build/reports/collection.json";
+
+node('maven') {
+
+    stage('Checkout') {
+        checkout scm
+        stash includes: 'src/pipeline/**', name: 'pipeline'
+        git GIT_URL
+    }
+
+    stage('Prepare Build') {
+        // Setup docker build config
+        try {
+            echo "Create BuildConfig Docker"
+            sh "oc process -f src/pipeline/templates/build-docker.template.yml -v NAME=${NAME} -v TAG=snapshot | oc replace -f -"
+        } catch (Exception e) {
+            echo "BuildConfig Docker already exists"
+        }
+    }
+
+    stage('Build') {
+        sh 'chmod 777 ./gradlew'
+        sh './gradlew build -x test'
+    }
+
+    stage('Build Docker Image') {
+
+        parallel 'Build Docker Image': {
+            unstash name: 'pipeline'
+            sh "oc start-build ${NAME}-snapshot --from-dir=. -F -w"
+
+        }, 'Test and Report': {
+            sh './gradlew test buildJavaDoc microdocs'
+            stash includes: 'build/reports/**', name: 'reports'
+        }
+    }
+
+    stage('Publish develop') {
+
+        parallel 'Promote Image': {
+            sh "oc tag ${NAME}:snapshot ${NAME}:dev"
+
+        }, 'Publish reports': {
+            unstash 'reports'
+            // Publish JUnit reports
+            junit allowEmptyResults: true, testResults: 'build/test-results/*.xml'
+            // Publish JavaDoc
+            archive 'build/reports/**'
+            // mdocs publish -d build/reports/microdocs.json
+        }
+    }
+
+    stage('Prepare Deployment') {
+        unstash name: 'pipeline'
+        try {
+            echo "Create App"
+            sh "oc new-app --image-stream=${NAME}:dev"
+        } catch (Exception e) {
+            echo "App already exists"
+        }
+
+    }
+
+    stage('Deploy develop') {
+        sh "oc rollout status dc/${NAME}"
+    }
+
+    stage('Expose routes') {
+        unstash name: 'pipeline'
+        def routes = ROUTES.split(',');
+        for (int index = 0; index < routes.length; index++) {
+            def route = routes[index];
+            try {
+                echo "Create Route ${name}-${inde} for ${path}"
+                sh "oc expose service ${name} --name=${name}-${index} --hostname=${HOSTNAME} --path=${route}"
+            } catch (Exception e) {
+                echo "Route for ${path} already exists"
+            }
+        }
+    }
+
+    if(fileExists(POSTMAN_COLLECTION)) {
+        stage('Prepare Api Test') {
+            unstash name: 'pipeline'
+            try {
+                sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME}-test -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
+            } catch (Exception e) {
+                sh "oc new-app ${NAME}"
+                sh "oc process -f src/pipeline/templates/deploy-app.template.yml -v NAME=${NAME}-test -v IMAGE=${NAME} -v TAG=dev | oc replace -f -"
+            }
+
+            stash includes: POSTMAN_COLLECTION, name: 'api-test'
+        }
+    }
+}
+
+//if(fileExists(POSTMAN_COLLECTION)) {
+//    node('nodejs') {
+//        stage('Install newman') {
+//            sh 'npm install -g newman'
+//        }
+//        stage('Run Api Test') {
+//            unstash name: 'api-test'
+//            sh "newman -c ${POSTMAN_COLLECTION} --exitCode 1"
+//        }
+//    }
+//}
